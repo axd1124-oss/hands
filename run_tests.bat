@@ -12,7 +12,7 @@ echo Step 1: Testing Dependencies...
 python test_dependencies.py
 if errorlevel 1 (
     echo.
-    echo X Dependencies not installed properly!
+    echo ERROR: Dependencies not installed properly!
     echo Run: pip install -r requirements.txt
     pause
     exit /b 1
@@ -47,6 +47,6 @@ python hand_model.py
 
 echo.
 echo ==========================================
-echo All tests completed!
+echo SUCCESS: All tests completed!
 echo ==========================================
 pause
