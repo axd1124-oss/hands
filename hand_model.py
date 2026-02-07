@@ -1,7 +1,17 @@
 """
-Hand Tracking and 3D Modeling using MediaPipe and Open3D
-This script captures hand landmarks using MediaPipe and visualizes them 
-as a 3D model using Open3D with cylinders for fingers and a sphere for the palm.
+Step 4: Full Hand Model Integration
+This is the complete hand tracking and 3D modeling application.
+It combines MediaPipe hand detection with Open3D 3D visualization.
+
+The hand is modeled as:
+- SPHERE for the palm (at wrist landmark)
+- CYLINDERS for each finger segment
+- Small spheres at each joint
+
+Make sure you've run the test scripts first:
+1. python test_dependencies.py
+2. python test_mediapipe.py
+3. python test_open3d.py
 """
 
 import cv2
@@ -156,19 +166,40 @@ class HandModel3D:
 
 def main():
     """Main function to run hand tracking and 3D visualization."""
+    print("=" * 60)
+    print("HAND MODEL - 3D Hand Tracking & Visualization")
+    print("=" * 60)
+    print()
+    
     # Initialize hand model
+    print("Initializing MediaPipe Hands...")
     hand_model = HandModel3D()
+    print("✓ MediaPipe initialized")
     
     # Initialize webcam
+    print("Opening webcam...")
     cap = cv2.VideoCapture(0)
     
     if not cap.isOpened():
-        print("Error: Could not open webcam.")
+        print("✗ Error: Could not open webcam.")
+        print("Make sure your webcam is connected and not in use.")
         return
     
-    print("Hand Tracking with 3D Visualization")
-    print("Press 'q' to quit")
-    print("Press 's' to save current 3D model")
+    print("✓ Webcam opened")
+    
+    print()
+    print("Controls:")
+    print("  'q' - Quit application")
+    print("  's' - Save current 3D model to hand_model.ply")
+    print()
+    print("Hand Model Structure:")
+    print("  • SPHERE - Palm (at wrist)")
+    print("  • CYLINDERS - Finger segments")
+    print("  • Small spheres - Joints")
+    print()
+    print("Starting visualization...")
+    print("=" * 60)
+    print()
     
     # Create Open3D visualizer
     vis = o3d.visualization.Visualizer()
@@ -180,19 +211,25 @@ def main():
     
     current_meshes = []
     first_frame = True
+    frame_count = 0
+    detection_count = 0
     
     try:
         while True:
             ret, frame = cap.read()
             if not ret:
-                print("Error: Could not read frame.")
+                print("✗ Error: Could not read frame.")
                 break
+            
+            frame_count += 1
             
             # Process frame
             frame, landmarks_3d = hand_model.process_frame(frame)
             
             # Update 3D visualization
             if landmarks_3d is not None:
+                detection_count += 1
+                
                 # Remove old meshes
                 for mesh in current_meshes:
                     vis.remove_geometry(mesh, reset_bounding_box=False)
@@ -209,10 +246,23 @@ def main():
                 if first_frame:
                     vis.reset_view_point(True)
                     first_frame = False
+                    print("✓ Hand detected! 3D model is now visible.")
             
             # Update visualizer
             vis.poll_events()
             vis.update_renderer()
+            
+            # Add status text to camera feed
+            detection_rate = (detection_count / frame_count) * 100 if frame_count > 0 else 0
+            cv2.putText(frame, f"Detection: {detection_rate:.1f}%", (10, 30),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            
+            if landmarks_3d is not None:
+                cv2.putText(frame, "Hand Model Active", (10, 60),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            else:
+                cv2.putText(frame, "Show your hand", (10, 60),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             
             # Show camera feed
             cv2.imshow('Hand Tracking', frame)
@@ -220,6 +270,8 @@ def main():
             # Check for key press
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
+                print()
+                print("Quitting...")
                 break
             elif key == ord('s') and landmarks_3d is not None:
                 # Save current 3D model
@@ -227,7 +279,7 @@ def main():
                 for mesh in current_meshes:
                     combined_mesh += mesh
                 o3d.io.write_triangle_mesh("hand_model.ply", combined_mesh)
-                print("Saved 3D hand model to 'hand_model.ply'")
+                print("✓ Saved 3D hand model to 'hand_model.ply'")
     
     finally:
         # Cleanup
@@ -235,6 +287,15 @@ def main():
         cap.release()
         cv2.destroyAllWindows()
         vis.destroy_window()
+        
+        print()
+        print("=" * 60)
+        print("SESSION SUMMARY")
+        print("=" * 60)
+        print(f"Total frames: {frame_count}")
+        print(f"Hands detected: {detection_count}")
+        print(f"Detection rate: {detection_rate:.1f}%")
+        print("=" * 60)
 
 
 if __name__ == "__main__":
