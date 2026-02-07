@@ -9,6 +9,22 @@ This project integrates MediaPipe for real-time hand tracking and Open3D for 3D 
 
 ## Quick Start
 
+### Option 1: Automated Testing (Recommended)
+
+**Linux/Mac:**
+```bash
+pip install -r requirements.txt
+./run_tests.sh
+```
+
+**Windows:**
+```cmd
+pip install -r requirements.txt
+run_tests.bat
+```
+
+### Option 2: Manual Step-by-Step
+
 ### 1. Install dependencies
 ```bash
 pip install -r requirements.txt
@@ -86,6 +102,8 @@ hands/
 ├── test_mediapipe.py        # Step 2: Test hand detection
 ├── test_open3d.py           # Step 3: Test 3D visualization
 ├── hand_model.py            # Step 4: Full application
+├── run_tests.sh             # Automated test script (Linux/Mac)
+├── run_tests.bat            # Automated test script (Windows)
 ├── SETUP.md                 # Detailed setup guide
 └── README.md                # This file
 ```
